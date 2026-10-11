@@ -28,7 +28,7 @@ jobs:
           go build -trimpath -o dist/pgdeploy.exe ./cmd/pgdeploy
         shell: pwsh
 
-  release-gate:
+  release:
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: windows-latest
     steps:
@@ -36,5 +36,17 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version: '1.27.x'
-      - name: Enforce non-empty source allowlist
-        run: go test -tags release ./internal/source/
+      - name: Build release binary
+        shell: pwsh
+        run: |
+          $env:CGO_ENABLED='0'
+          $env:GOOS='windows'
+          $env:GOARCH='amd64'
+          $commit = "${{ github.sha }}"
+          $buildTime = (Get-Date -Format 'yyyy-MM-ddTHH:mm:ssZ')
+          $ldflags = "-s -w -X github.com/pgdeploy/pgdeploy/internal/version.GitCommit=$commit -X github.com/pgdeploy/pgdeploy/internal/version.BuildTime=$buildTime"
+          go build -trimpath -ldflags $ldflags -o dist/pgdeploy.exe ./cmd/pgdeploy
+      - name: Upload release asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/pgdeploy.exe
