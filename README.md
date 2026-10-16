@@ -162,9 +162,26 @@ MyCommercialSoftware/
 可用的脚本为：
 ```
 mkdir "D:\Customer Apps\PostgreSQL"
-.\pgdeploy.exe install --root "D:\Customer Apps\PostgreSQL" --service CustomerPG18 --port 5432 --sha256 e2246ba91d22345bc3d017586c09ede52d9df180b1eeb480f050445f1cad84e2 --password-file ".\PASSWORD"
+.\pgdeploy.exe install --root "C:\Customer Apps\PostgreSQL" --service CustomerPG18 --port 5432 --sha256 e2246ba91d22345bc3d017586c09ede52d9df180b1eeb480f050445f1cad84e2 --password-file ".\PASSWORD"
 ```
 
+## Issues for new machines
+
+新机器可能需要安装Microsoft Visual C++ v14 Redistributable，考虑 https://github.com/abbodi1406/vcredist
+
+签名验证过慢的问题：
+
+关闭沙盒内的 Smart App Control
+
+```
+Set-ItemProperty `
+  -Path "HKLM:\SYSTEM\CurrentControlSet\Control\CI\Policy" `
+  -Name "VerifiedAndReputablePolicyState" `
+  -Value 0
+
+# 立即刷新代码完整性策略
+CiTool.exe --refresh
+```
 ## 关于来源真实性（重要）
 
 `install` 只信任能验证来源的 ZIP：内置白名单命中，或操作者通过独立可信渠道提供 `--sha256`。两者都缺失时，`install` 会以 `E_SOURCE_UNVERIFIED` 失败且**不会执行归档内任何 EXE**。`verify` 在无可信哈希时仍可完成只读结构检查，但结果为 `SOURCE_AUTHENTICITY_UNVERIFIED`。
